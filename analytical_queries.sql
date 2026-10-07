@@ -51,3 +51,33 @@ SELECT UPPER(c.nume) AS "Nume Client",
         END AS "Status Cerere"
 FROM CLIENT c
 JOIN DOSAR_CREDIT d ON c.id_client = d.id_client;
+
+-- DML Operations: Data Modification and Deletion
+
+-- Update 1: Approve credit files for clients who have a net income strictly greater than 5000 LEI
+UPDATE DOSAR_CREDIT
+SET status = 'Aprobat'
+WHERE id_client IN (
+    SELECT id_client
+    FROM CLIENT
+    WHERE venit_net > 5000
+);
+
+-- Update 2: Increase the net income by 500 LEI for clients who applied for a banking product in 'EUR'
+UPDATE CLIENT
+SET venit_net = venit_net + 500
+WHERE id_client IN (
+    SELECT d.id_client
+    FROM DOSAR_CREDIT d
+    JOIN PRODUS_BANCAR p ON d.id_produs = p.id_produs
+    WHERE p.moneda = 'EUR'
+);
+
+-- Delete 1: Remove insurance policies associated with credit files belonging to clients with a net income under 4500 LEI
+DELETE FROM POLITA_ASIGURARE
+WHERE id_dosar IN (
+    SELECT d.id_dosar
+    FROM DOSAR_CREDIT d
+    JOIN CLIENT c ON d.id_client = c.id_client
+    WHERE c.venit_net < 4500
+);
